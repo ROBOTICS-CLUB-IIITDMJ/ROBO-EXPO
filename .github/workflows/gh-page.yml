@@ -1,0 +1,36 @@
+name: GH Pages
+
+on:
+  push:
+    branches:
+      - master
+  workflow_run:
+    workflows: ["Merge Bot"]
+    types: completed
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Yarn install
+      uses: actions/setup-node@v1
+    
+    - run: yarn install
+
+    - name: Build DB
+      uses: ./.github/actions/buildDB
+      with:
+        GITHUB_TOKEN: ${{ secrets.AVATAR_TOKEN }}
+
+    - name: Build static site
+      run: yarn run build
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
